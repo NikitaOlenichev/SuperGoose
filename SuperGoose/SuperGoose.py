@@ -46,7 +46,7 @@ def start_screen():
     Button(60, 380, 195, 75, 'Прогресс', progress)
     Button(265, 380, 195, 75, 'Магазин', shop)
     for line in rules:
-        line_rendered = font.render(line, 1, (random.randint(0, 255), random.randint(0, 255), 0))
+        line_rendered = font.render(line, 1, (0, 255, 0))
         line_rect = line_rendered.get_rect()
         text_coord += 10
         line_rect.top = text_coord
