@@ -2,8 +2,7 @@ import pygame
 import os
 import sys
 import random
-import pygame_widgets
-from pygame_widgets.button import Button
+
 
 pygame.init()
 size = width, height = 500, 500
@@ -11,6 +10,8 @@ FPS = 50
 STEP = 50
 screen = pygame.display.set_mode(size)
 clock = pygame.time.Clock()
+objects = []
+font = pygame.font.SysFont('Arial', 40)
 
 
 def load_image(name, colorkey=None):
@@ -35,14 +36,17 @@ def terminate():
 
 
 def start_screen():
-    rules = ["      SuperGoose", ""]
-    fon = pygame.transform.scale(load_image('fon.png'), (width, height))
-    screen.blit(fon, (0, 0))
-    font = pygame.font.SysFont('Times New Roman', 65)
+    rules = ["      SuperGoosе", ""]
+    screen.fill((0, 100, 255))
+    font = pygame.font.SysFont('Times New Roman', 63)
     text_coord = 50
+    Button(60, 200, 400, 75, 'Уровни', levels)
+    Button(60, 290, 195, 75, 'SuperGoose', SuperGoose)
+    Button(265, 290, 195, 75, 'Справка', help)
+    Button(60, 380, 195, 75, 'Прогресс', progress)
+    Button(265, 380, 195, 75, 'Магазин', shop)
     for line in rules:
-        line_rendered = font.render(line, 1, (random.randint(0, 255), random.randint(0, 255),
-                                              0))
+        line_rendered = font.render(line, 1, (random.randint(0, 255), random.randint(0, 255), 0))
         line_rect = line_rendered.get_rect()
         text_coord += 10
         line_rect.top = text_coord
@@ -54,11 +58,66 @@ def start_screen():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 terminate()
-            elif event.type == pygame.KEYDOWN or event.type == pygame.MOUSEBUTTONDOWN:
-                return
+        for object in objects:
+            object.process()
         pygame.display.flip()
         clock.tick(FPS)
-        
+
+class Button():
+    def __init__(self, x, y, width, height, buttonText='Button', onclickFunction=None,
+                     onePress=False):
+        self.x = x
+        self.y = y
+        self.width = width
+        self.height = height
+        self.onclickFunction = onclickFunction
+        self.onePress = onePress
+        self.alreadyPressed = False
+        self.fillColors = {'normal': (0, 255, 0), 'hover': (175, 0, 0), 'pressed': (0, 0, 255)}
+        self.buttonSurface = pygame.Surface((self.width, self.height))
+        self.buttonRect = pygame.Rect(self.x, self.y, self.width, self.height)
+        self.buttonSurf = font.render(buttonText, True, (20, 20, 20))
+        objects.append(self)
+
+    def process(self):
+        mousePos = pygame.mouse.get_pos()
+        self.buttonSurface.fill(self.fillColors['normal'])
+        if self.buttonRect.collidepoint(mousePos):
+            self.buttonSurface.fill(self.fillColors['hover'])
+            if pygame.mouse.get_pressed(num_buttons=3)[0]:
+                self.buttonSurface.fill(self.fillColors['pressed'])
+                if self.onePress:
+                    self.onclickFunction()
+                elif not self.alreadyPressed:
+                    self.onclickFunction()
+                    self.alreadyPressed = True
+            else:
+                self.alreadyPressed = False
+        self.buttonSurface.blit(self.buttonSurf, [
+            self.buttonRect.width / 2 - self.buttonSurf.get_rect().width / 2,
+            self.buttonRect.height / 2 - self.buttonSurf.get_rect().height / 2])
+        screen.blit(self.buttonSurface, self.buttonRect)
+
+
+def levels():
+    print('Уровни скоро появятся!')
+
+
+def SuperGoose():
+    print('История о гусе скоро появится!')
+
+
+def help():
+    print('Помощь скоро прибудет!')
+
+
+def progress():
+    print('Прогресс скоро появится!')
+
+
+def shop():
+    print('Магазин скоро откроется!')
+
 
 start_screen()
 running = True
@@ -66,6 +125,5 @@ while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             terminate()
-    screen.fill((0, 0, 0))
     pygame.display.flip()
     clock.tick(FPS)
