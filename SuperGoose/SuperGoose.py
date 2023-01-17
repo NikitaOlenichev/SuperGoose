@@ -12,6 +12,12 @@ screen = pygame.display.set_mode(size)
 clock = pygame.time.Clock()
 objects = []
 font = pygame.font.SysFont('Arial', 40)
+tile_width = tile_height = 50
+all_sprites = pygame.sprite.Group()
+tiles_group = pygame.sprite.Group()
+player_group = pygame.sprite.Group()
+box_group = pygame.sprite.Group()
+player = None
 
 
 def load_image(name, colorkey=None):
@@ -28,6 +34,13 @@ def load_image(name, colorkey=None):
             colorkey = image.get_at((0, 0))
         image.set_colorkey(colorkey)
     return image
+
+
+tile_images = {
+    'empty': pygame.transform.scale(load_image('ground.png'), (50, 50)),
+    'wall': pygame.transform.scale(load_image('wall.png'), (50, 50))
+}
+player_image = pygame.transform.scale(load_image('goose.png'), (50, 50))
 
 
 def terminate():
@@ -63,9 +76,10 @@ def start_screen():
         pygame.display.flip()
         clock.tick(FPS)
 
+
 class Button():
     def __init__(self, x, y, width, height, buttonText='Button', onclickFunction=None,
-                     onePress=False):
+                onePress=False):
         self.x = x
         self.y = y
         self.width = width
@@ -100,7 +114,99 @@ class Button():
 
 
 def levels():
-    print('Уровни скоро появятся!')
+    objects.clear()
+    rules = [""]
+    screen.fill((0, 100, 255))
+    font = pygame.font.SysFont('Times New Roman', 63)
+    text_coord = 50
+    Button(60, 100, 400, 75, 'Уровень 1', labyrinth_level)
+    Button(60, 190, 400, 75, 'Уровень 2', fly_level)
+    Button(60, 280, 400, 75, 'Уровень 3', fly_level_enemies)
+    for line in rules:
+        line_rendered = font.render(line, 1, (0, 255, 0))
+        line_rect = line_rendered.get_rect()
+        text_coord += 10
+        line_rect.top = text_coord
+        line_rect.x = 10
+        text_coord += line_rect.height
+        screen.blit(line_rendered, line_rect)
+
+
+def labyrinth_level():
+    objects.clear()
+    screen = pygame.display.set_mode((1450, 950))
+    player, level_x, level_y = generate_level(load_level('test_level.txt'))
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                terminate()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_LEFT:
+                    player.rect.x -= STEP
+                    if pygame.sprite.spritecollideany(player, box_group):
+                        player.rect.x += STEP
+                if event.key == pygame.K_RIGHT:
+                    player.rect.x += STEP
+                    if pygame.sprite.spritecollideany(player, box_group):
+                        player.rect.x -= STEP
+                if event.key == pygame.K_DOWN:
+                    player.rect.y += STEP
+                    if pygame.sprite.spritecollideany(player, box_group):
+                        player.rect.y -= STEP
+                if event.key == pygame.K_UP:
+                    player.rect.y -= STEP
+                    if pygame.sprite.spritecollideany(player, box_group):
+                        player.rect.y += STEP
+        screen.fill((0, 0, 0))
+        tiles_group.draw(screen)
+        player_group.draw(screen)
+        pygame.display.flip()
+
+
+def fly_level():
+    pass
+
+
+def fly_level_enemies():
+    pass
+
+
+def load_level(level_name):
+    level_name = 'data/levels/' + level_name
+    with open(level_name, 'r') as mapFile:
+        level_map = [line.strip() for line in mapFile]
+    max_width = max(map(len, level_map))
+    return list(map(lambda x: x.ljust(max_width, '.'), level_map))
+
+
+class Tile(pygame.sprite.Sprite):
+    def __init__(self, tile_type, pos_x, pos_y):
+        super().__init__(tiles_group, all_sprites)
+        if tile_type == 'wall':
+            self.add(box_group)
+        self.image = tile_images[tile_type]
+        self.rect = self.image.get_rect().move(tile_width * pos_x, tile_height * pos_y)
+
+
+class Player(pygame.sprite.Sprite):
+    def __init__(self, pos_x, pos_y):
+        super().__init__(player_group, all_sprites)
+        self.image = player_image
+        self.rect = self.image.get_rect().move(tile_width * pos_x, tile_height * pos_y)
+
+
+def generate_level(level):
+    new_player, x, y = None, None, None
+    for y in range(len(level)):
+        for x in range(len(level[y])):
+            if level[y][x] == '.':
+                Tile('empty', x, y)
+            elif level[y][x] == '#':
+                Tile('wall', x, y)
+            elif level[y][x] == '@':
+                Tile('empty', x, y)
+                new_player = Player(x, y)
+    return new_player, x, y
 
 
 def SuperGoose():
