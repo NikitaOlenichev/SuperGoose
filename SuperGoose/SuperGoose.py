@@ -161,10 +161,40 @@ def labyrinth_level():
         tiles_group.draw(screen)
         player_group.draw(screen)
         pygame.display.flip()
+        clock.tick(FPS)
 
 
 def fly_level():
-    pass
+    objects.clear()
+    screen = pygame.display.set_mode(800, 800)
+    player, level_x, level_y = generate_level(load_level('fly_level.txt'))
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                terminate()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_LEFT:
+                    player.rect.x -= STEP
+                    if pygame.sprite.spritecollideany(player, box_group):
+                        terminate()
+                if event.key == pygame.K_RIGHT:
+                    player.rect.x += STEP
+                    if pygame.sprite.spritecollideany(player, box_group):
+                        terminate()
+                if event.key == pygame.K_DOWN:
+                    player.rect.y += STEP
+                    if pygame.sprite.spritecollideany(player, box_group):
+                        terminate()
+                if event.key == pygame.K_UP:
+                    player.rect.y -= STEP
+                    if pygame.sprite.spritecollideany(player, box_group):
+                        terminate()
+        player.rect.x += 25
+        screen.fill((0, 0, 0))
+        tiles_group.draw(screen)
+        player_group.draw(screen)
+        pygame.display.flip()
+        clock.tick(FPS)
 
 
 def fly_level_enemies():
@@ -193,6 +223,20 @@ class Player(pygame.sprite.Sprite):
         super().__init__(player_group, all_sprites)
         self.image = player_image
         self.rect = self.image.get_rect().move(tile_width * pos_x, tile_height * pos_y)
+
+
+class Camera:
+    def __init__(self):
+        self.dx = 0
+        self.dy = 0
+
+    def apply(self, obj):
+        obj.rect.x += self.dx
+        obj.rect.y += self.dy
+
+    def update(self, target):
+        self.dx = -(target.rect.x + target.rect.w // 2 - width // 2)
+        self.dy = -(target.rect.y + target.rect.h // 2 - height // 2)
 
 
 def generate_level(level):
