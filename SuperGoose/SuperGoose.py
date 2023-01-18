@@ -165,8 +165,9 @@ def labyrinth_level():
 
 
 def fly_level():
+    camera = Camera()
     objects.clear()
-    screen = pygame.display.set_mode(800, 800)
+    screen = pygame.display.set_mode((500, 350))
     player, level_x, level_y = generate_level(load_level('fly_level.txt'))
     while True:
         for event in pygame.event.get():
@@ -189,7 +190,10 @@ def fly_level():
                     player.rect.y -= STEP
                     if pygame.sprite.spritecollideany(player, box_group):
                         terminate()
-        player.rect.x += 25
+        player.rect.x += 1
+        camera.update(player)
+        for sprite in all_sprites:
+            camera.apply(sprite, level_x, level_y)
         screen.fill((0, 0, 0))
         tiles_group.draw(screen)
         player_group.draw(screen)
@@ -230,9 +234,12 @@ class Camera:
         self.dx = 0
         self.dy = 0
 
-    def apply(self, obj):
+    def apply(self, obj, level_x, level_y):
         obj.rect.x += self.dx
-        obj.rect.y += self.dy
+        if obj.rect.x < -obj.rect.width:
+            obj.rect.x += (level_x + 1) * obj.rect.width
+        if obj.rect.x >= obj.rect.width * level_x:
+            obj.rect.x -= (level_x + 1) * obj.rect.width
 
     def update(self, target):
         self.dx = -(target.rect.x + target.rect.w // 2 - width // 2)
