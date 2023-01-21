@@ -16,6 +16,7 @@ tile_width = tile_height = 50
 all_sprites = pygame.sprite.Group()
 tiles_group = pygame.sprite.Group()
 player_group = pygame.sprite.Group()
+camera_group = pygame.sprite.Group()
 box_group = pygame.sprite.Group()
 player = None
 
@@ -134,8 +135,8 @@ def levels():
 
 def labyrinth_level():
     objects.clear()
-    screen = pygame.display.set_mode((1450, 950))
-    player, level_x, level_y = generate_level(load_level('test_level.txt'))
+    screen = pygame.display.set_mode((1350, 850))
+    player, level_x, level_y = generate_level(load_level('labyrinth_level.txt'))
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -169,32 +170,37 @@ def fly_level():
     objects.clear()
     screen = pygame.display.set_mode((500, 350))
     player, level_x, level_y = generate_level(load_level('fly_level.txt'))
+    cam = Player(0, 150, True)
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 terminate()
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_LEFT:
-                    player.rect.x -= STEP
+                    player.rect.x -= STEP // 2
                     if pygame.sprite.spritecollideany(player, box_group):
-                        terminate()
+                        end_game()
                 if event.key == pygame.K_RIGHT:
-                    player.rect.x += STEP
+                    player.rect.x += STEP // 2
                     if pygame.sprite.spritecollideany(player, box_group):
-                        terminate()
+                        end_game()
                 if event.key == pygame.K_DOWN:
                     player.rect.y += STEP
                     if pygame.sprite.spritecollideany(player, box_group):
-                        terminate()
+                        end_game()
                 if event.key == pygame.K_UP:
                     player.rect.y -= STEP
                     if pygame.sprite.spritecollideany(player, box_group):
-                        terminate()
+                        end_game()
+            if not (cam.rect.x - 250 <= player.rect.x <= cam.rect.x + 250):
+                end_game()
         player.rect.x += 1
-        camera.update(player)
+        cam.rect.x += 1
+        camera.update(cam)
         for sprite in all_sprites:
             camera.apply(sprite, level_x, level_y)
         screen.fill((0, 0, 0))
+        camera_group.draw(screen)
         tiles_group.draw(screen)
         player_group.draw(screen)
         pygame.display.flip()
@@ -210,7 +216,7 @@ def load_level(level_name):
     with open(level_name, 'r') as mapFile:
         level_map = [line.strip() for line in mapFile]
     max_width = max(map(len, level_map))
-    return list(map(lambda x: x.ljust(max_width, '.'), level_map))
+    return list(map(lambda x: x.ljust(max_width, '#'), level_map))
 
 
 class Tile(pygame.sprite.Sprite):
@@ -223,8 +229,11 @@ class Tile(pygame.sprite.Sprite):
 
 
 class Player(pygame.sprite.Sprite):
-    def __init__(self, pos_x, pos_y):
-        super().__init__(player_group, all_sprites)
+    def __init__(self, pos_x, pos_y, camera=False):
+        if camera:
+            super().__init__(camera_group, all_sprites)
+        else:
+            super().__init__(player_group, all_sprites)
         self.image = player_image
         self.rect = self.image.get_rect().move(tile_width * pos_x, tile_height * pos_y)
 
@@ -258,6 +267,11 @@ def generate_level(level):
                 Tile('empty', x, y)
                 new_player = Player(x, y)
     return new_player, x, y
+
+
+def end_game():
+    print('Игра окончена')
+    terminate()
 
 
 def SuperGoose():
