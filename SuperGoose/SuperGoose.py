@@ -49,6 +49,10 @@ def terminate():
     sys.exit()
 
 
+def back():
+    return
+
+
 def start_screen():
     rules = ["      SuperGoosе", ""]
     screen.fill((0, 100, 255))
