@@ -279,7 +279,30 @@ def SuperGoose():
 
 
 def help():
-    print('Помощь скоро прибудет!')
+    size = width, height = 500, 500
+    screen = pygame.display.set_mode(size)
+    name = ["        Справка", "", "Справка скоро", "появится!"]
+    screen.fill((0, 100, 255))
+    font = pygame.font.SysFont('Times New Roman', 63)
+    text_coord = 50
+    Button(60, 200, 400, 75, 'Назад', back)
+    for line in name:
+        line_rendered = font.render(line, 1, (0, 255, 0))
+        line_rect = line_rendered.get_rect()
+        text_coord += 10
+        line_rect.top = text_coord
+        line_rect.x = 10
+        text_coord += line_rect.height
+        screen.blit(line_rendered, line_rect)
+
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                terminate()
+        for object in objects:
+            object.process()
+        pygame.display.flip()
+        clock.tick(FPS)
 
 
 def progress():
