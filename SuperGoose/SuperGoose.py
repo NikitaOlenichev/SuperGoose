@@ -335,13 +335,53 @@ def SuperGoose():
 
 def help():
     objects.clear()
-    screen = pygame.display.set_mode((500, 500))
-    name = ["        Справка", "", "Справка скоро", "появится!"]
+    screen = pygame.display.set_mode((605, 600))
+    with open('output/help1.txt', 'r', encoding='utf-8') as file:
+        lines = file.readlines()
+    name = ["          Справка", ""]
     screen.fill((0, 100, 255))
-    font = pygame.font.SysFont('Times New Roman', 63)
+    font = pygame.font.SysFont('Times New Roman', 60)
+    font1 = pygame.font.SysFont('Times New Roman', 30)
     text_coord = 50
     Button(10, 10, 100, 50, 'Назад', back)
+    Button(410, 10, 185, 50, 'Страница 2', help_page_2)
     for line in name:
+        line_rendered = font.render(line, 1, (0, 255, 0))
+        line_rect = line_rendered.get_rect()
+        text_coord += 10
+        line_rect.top = text_coord
+        line_rect.x = 10
+        text_coord += line_rect.height
+        screen.blit(line_rendered, line_rect)
+    for line in lines:
+        line_rendered = font1.render(line, 1, (0, 255, 0))
+        line_rect = line_rendered.get_rect()
+        text_coord += 10
+        line_rect.top = text_coord
+        line_rect.x = 10
+        text_coord += line_rect.height
+        screen.blit(line_rendered, line_rect)
+
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                terminate()
+        for object in objects:
+            object.process()
+        pygame.display.flip()
+        clock.tick(FPS)
+
+
+def help_page_2():
+    objects.clear()
+    screen = pygame.display.set_mode((605, 600))
+    with open('output/help2.txt', 'r', encoding='utf-8') as file:
+        lines = file.readlines()
+    screen.fill((0, 100, 255))
+    font = pygame.font.SysFont('Times New Roman', 30)
+    text_coord = 50
+    Button(10, 10, 100, 50, 'Назад', back)
+    for line in lines:
         line_rendered = font.render(line, 1, (0, 255, 0))
         line_rect = line_rendered.get_rect()
         text_coord += 10
