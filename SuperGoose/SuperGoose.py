@@ -121,13 +121,18 @@ class Button():
 
 def levels():
     objects.clear()
-    rules = [""]
+    screen = pygame.display.set_mode((506, 500))
+    rules = ["          Уровни", "", "Выберите уровень:"]
     screen.fill((0, 100, 255))
-    font = pygame.font.SysFont('Times New Roman', 63)
-    text_coord = 50
-    Button(60, 100, 400, 75, 'Уровень 1', labyrinth_level)
-    Button(60, 190, 400, 75, 'Уровень 2', fly_level)
-    Button(60, 280, 400, 75, 'Уровень 3', fly_level_enemies)
+    font = pygame.font.SysFont('Times New Roman', 60)
+    text_coord = 20
+    Button(15, 280, 155, 75, 'Уровень 1', labyrinth_level)
+    Button(175, 280, 155, 75, 'Уровень 2', fly_level)
+    Button(335, 280, 155, 75, 'Уровень 3', fly_level_enemies)
+    Button(15, 365, 155, 75, 'Уровень 5', labyrinth_level)
+    Button(175, 365, 155, 75, 'Уровень 6', labyrinth_level)
+    Button(335, 365, 155, 75, 'Уровень 7', labyrinth_level)
+    Button(10, 10, 100, 50, 'Назад', back)
     for line in rules:
         line_rendered = font.render(line, 1, (0, 255, 0))
         line_rect = line_rendered.get_rect()
@@ -136,6 +141,15 @@ def levels():
         line_rect.x = 10
         text_coord += line_rect.height
         screen.blit(line_rendered, line_rect)
+
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                terminate()
+        for object in objects:
+            object.process()
+        pygame.display.flip()
+        clock.tick(FPS)
 
 
 def labyrinth_level():
@@ -280,18 +294,40 @@ def end_game():
 
 
 def SuperGoose():
-    print('История о гусе скоро появится!')
+    objects.clear()
+    screen = pygame.display.set_mode((500, 500))
+    name = ["      SuperGoose", "", "История скоро", "появится!"]
+    screen.fill((0, 100, 255))
+    font = pygame.font.SysFont('Times New Roman', 63)
+    text_coord = 50
+    Button(10, 10, 100, 50, 'Назад', back)
+    for line in name:
+        line_rendered = font.render(line, 1, (0, 255, 0))
+        line_rect = line_rendered.get_rect()
+        text_coord += 10
+        line_rect.top = text_coord
+        line_rect.x = 10
+        text_coord += line_rect.height
+        screen.blit(line_rendered, line_rect)
+
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                terminate()
+        for object in objects:
+            object.process()
+        pygame.display.flip()
+        clock.tick(FPS)
 
 
 def help():
     objects.clear()
-    size = width, height = 500, 500
-    screen = pygame.display.set_mode(size)
+    screen = pygame.display.set_mode((500, 500))
     name = ["        Справка", "", "Справка скоро", "появится!"]
     screen.fill((0, 100, 255))
     font = pygame.font.SysFont('Times New Roman', 63)
     text_coord = 50
-    Button(55, 400, 400, 75, 'Назад', back)
+    Button(10, 10, 100, 50, 'Назад', back)
     for line in name:
         line_rendered = font.render(line, 1, (0, 255, 0))
         line_rect = line_rendered.get_rect()
@@ -312,11 +348,57 @@ def help():
 
 
 def progress():
-    print('Прогресс скоро появится!')
+    objects.clear()
+    screen = pygame.display.set_mode((500, 500))
+    name = ["       Прогресс", "", "Прогресс скоро", "появится!"]
+    screen.fill((0, 100, 255))
+    font = pygame.font.SysFont('Times New Roman', 63)
+    text_coord = 50
+    Button(10, 10, 100, 50, 'Назад', back)
+    for line in name:
+        line_rendered = font.render(line, 1, (0, 255, 0))
+        line_rect = line_rendered.get_rect()
+        text_coord += 10
+        line_rect.top = text_coord
+        line_rect.x = 10
+        text_coord += line_rect.height
+        screen.blit(line_rendered, line_rect)
+
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                terminate()
+        for object in objects:
+            object.process()
+        pygame.display.flip()
+        clock.tick(FPS)
 
 
 def shop():
-    print('Магазин скоро откроется!')
+    objects.clear()
+    screen = pygame.display.set_mode((500, 500))
+    name = ["        Магазин", "", "Магазин скоро", "появится!"]
+    screen.fill((0, 100, 255))
+    font = pygame.font.SysFont('Times New Roman', 63)
+    text_coord = 50
+    Button(10, 10, 100, 50, 'Назад', back)
+    for line in name:
+        line_rendered = font.render(line, 1, (0, 255, 0))
+        line_rect = line_rendered.get_rect()
+        text_coord += 10
+        line_rect.top = text_coord
+        line_rect.x = 10
+        text_coord += line_rect.height
+        screen.blit(line_rendered, line_rect)
+
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                terminate()
+        for object in objects:
+            object.process()
+        pygame.display.flip()
+        clock.tick(FPS)
 
 
 start_screen()
