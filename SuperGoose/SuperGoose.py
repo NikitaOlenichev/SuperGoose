@@ -19,6 +19,7 @@ player_group = pygame.sprite.Group()
 camera_group = pygame.sprite.Group()
 box_group = pygame.sprite.Group()
 player = None
+count = 0
 
 
 def load_image(name, colorkey=None):
@@ -360,15 +361,30 @@ def help():
 
 
 def progress():
+    global count
     objects.clear()
     screen = pygame.display.set_mode((500, 500))
-    name = ["       Прогресс", "", "Прогресс скоро", "появится!"]
+    name = ["        Прогресс", ""]
+    text = ['Твой прогресс:', f'                 {count} из 6 уровней!']
+    if count == 6:
+        text.append('Молодец!')
+        text.append('Ты прошёл игру!!!')
+        count = 0
     screen.fill((0, 100, 255))
     font = pygame.font.SysFont('Times New Roman', 63)
+    font1 = pygame.font.SysFont('Times New Roman', 45)
     text_coord = 50
     Button(10, 10, 100, 50, 'Назад', back)
     for line in name:
         line_rendered = font.render(line, 1, (0, 255, 0))
+        line_rect = line_rendered.get_rect()
+        text_coord += 10
+        line_rect.top = text_coord
+        line_rect.x = 10
+        text_coord += line_rect.height
+        screen.blit(line_rendered, line_rect)
+    for line in text:
+        line_rendered = font1.render(line, 1, (0, 255, 0))
         line_rect = line_rendered.get_rect()
         text_coord += 10
         line_rect.top = text_coord
