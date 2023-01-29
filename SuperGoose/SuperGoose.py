@@ -20,6 +20,10 @@ camera_group = pygame.sprite.Group()
 box_group = pygame.sprite.Group()
 player = None
 count = 0
+pygame.mixer.music.load('music/start_window.mp3')
+pygame.mixer.music.play(-1)
+fl_pause = False
+vol = 1.0
 
 
 def load_image(name, colorkey=None):
@@ -79,6 +83,7 @@ def back():
 
 
 def start_screen():
+    global fl_pause, vol
     #clock = pygame.time.Clock()
     screen = pygame.display.set_mode((500, 500))
     screen.fill((0, 100, 255))
@@ -91,6 +96,7 @@ def start_screen():
     Button(265, 290, 195, 75, 'Справка', help)
     Button(60, 380, 195, 75, 'Прогресс', progress)
     Button(265, 380, 195, 75, 'Магазин', shop)
+    Button(420, 5, 75, 50, 'Set', settings)
     for line in rules:
         line_rendered = font.render(line, 1, (0, 255, 0))
         line_rect = line_rendered.get_rect()
@@ -104,6 +110,19 @@ def start_screen():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 terminate()
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE:
+                    fl_pause = not fl_pause
+                    if fl_pause:
+                        pygame.mixer.music.pause()
+                    else:
+                        pygame.mixer.music.unpause()
+                elif event.key == pygame.K_MINUS:
+                    vol -= 0.1
+                    pygame.mixer.music.set_volume(vol)
+                elif event.key == pygame.K_EQUALS:
+                    vol += 0.1
+                    pygame.mixer.music.set_volume(vol)
         for object in objects:
             object.process()
         pygame.display.flip()
@@ -147,6 +166,7 @@ class Button():
 
 
 def levels():
+    global fl_pause, vol
     objects.clear()
     screen = pygame.display.set_mode((506, 500))
     rules = ["          Уровни", "", "Выберите уровень:"]
@@ -173,6 +193,19 @@ def levels():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 terminate()
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE:
+                    fl_pause = not fl_pause
+                    if fl_pause:
+                        pygame.mixer.music.pause()
+                    else:
+                        pygame.mixer.music.unpause()
+                elif event.key == pygame.K_MINUS:
+                    vol -= 0.1
+                    pygame.mixer.music.set_volume(vol)
+                elif event.key == pygame.K_EQUALS:
+                    vol += 0.1
+                    pygame.mixer.music.set_volume(vol)
         for object in objects:
             object.process()
         pygame.display.flip()
@@ -180,6 +213,7 @@ def levels():
 
 
 def labyrinth_level():
+    global fl_pause, vol
     objects.clear()
     screen = pygame.display.set_mode((1350, 850))
     player, level_x, level_y = generate_level(load_level('labyrinth_level.txt'))
@@ -204,6 +238,18 @@ def labyrinth_level():
                     player.rect.y -= STEP
                     if pygame.sprite.spritecollideany(player, box_group):
                         player.rect.y += STEP
+                if event.key == pygame.K_SPACE:
+                    fl_pause = not fl_pause
+                    if fl_pause:
+                        pygame.mixer.music.pause()
+                    else:
+                        pygame.mixer.music.unpause()
+                elif event.key == pygame.K_MINUS:
+                    vol -= 0.1
+                    pygame.mixer.music.set_volume(vol)
+                elif event.key == pygame.K_EQUALS:
+                    vol += 0.1
+                    pygame.mixer.music.set_volume(vol)
         screen.fill((0, 0, 0))
         tiles_group.draw(screen)
         player_group.draw(screen)
@@ -212,6 +258,7 @@ def labyrinth_level():
 
 
 def fly_level():
+    global fl_pause, vol
     camera = Camera()
     objects.clear()
     screen = pygame.display.set_mode((500, 350))
@@ -238,6 +285,18 @@ def fly_level():
                     player.rect.y -= STEP
                     if pygame.sprite.spritecollideany(player, box_group):
                         end_game()
+                if event.key == pygame.K_SPACE:
+                    fl_pause = not fl_pause
+                    if fl_pause:
+                        pygame.mixer.music.pause()
+                    else:
+                        pygame.mixer.music.unpause()
+                elif event.key == pygame.K_MINUS:
+                    vol -= 0.1
+                    pygame.mixer.music.set_volume(vol)
+                elif event.key == pygame.K_EQUALS:
+                    vol += 0.1
+                    pygame.mixer.music.set_volume(vol)
             if not (cam.rect.x - 250 <= player.rect.x <= cam.rect.x + 250):
                 end_game()
         player.rect.x += 1
@@ -321,6 +380,7 @@ def end_game():
 
 
 def SuperGoose():
+    global fl_pause, vol
     objects.clear()
     screen = pygame.display.set_mode((700, 600))
     with open('output/Goose.txt', 'r') as file:
@@ -352,6 +412,19 @@ def SuperGoose():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 terminate()
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE:
+                    fl_pause = not fl_pause
+                    if fl_pause:
+                        pygame.mixer.music.pause()
+                    else:
+                        pygame.mixer.music.unpause()
+                elif event.key == pygame.K_MINUS:
+                    vol -= 0.1
+                    pygame.mixer.music.set_volume(vol)
+                elif event.key == pygame.K_EQUALS:
+                    vol += 0.1
+                    pygame.mixer.music.set_volume(vol)
         for object in objects:
             object.process()
         pygame.display.flip()
@@ -359,6 +432,7 @@ def SuperGoose():
 
 
 def help():
+    global fl_pause, vol
     objects.clear()
     screen = pygame.display.set_mode((605, 600))
     with open('output/help1.txt', 'r', encoding='utf-8') as file:
@@ -391,6 +465,19 @@ def help():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 terminate()
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE:
+                    fl_pause = not fl_pause
+                    if fl_pause:
+                        pygame.mixer.music.pause()
+                    else:
+                        pygame.mixer.music.unpause()
+                elif event.key == pygame.K_MINUS:
+                    vol -= 0.1
+                    pygame.mixer.music.set_volume(vol)
+                elif event.key == pygame.K_EQUALS:
+                    vol += 0.1
+                    pygame.mixer.music.set_volume(vol)
         for object in objects:
             object.process()
         pygame.display.flip()
@@ -398,6 +485,7 @@ def help():
 
 
 def help_page_2():
+    global fl_pause, vol
     objects.clear()
     screen = pygame.display.set_mode((605, 600))
     with open('output/help2.txt', 'r', encoding='utf-8') as file:
@@ -419,6 +507,19 @@ def help_page_2():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 terminate()
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE:
+                    fl_pause = not fl_pause
+                    if fl_pause:
+                        pygame.mixer.music.pause()
+                    else:
+                        pygame.mixer.music.unpause()
+                elif event.key == pygame.K_MINUS:
+                    vol -= 0.1
+                    pygame.mixer.music.set_volume(vol)
+                elif event.key == pygame.K_EQUALS:
+                    vol += 0.1
+                    pygame.mixer.music.set_volume(vol)
         for object in objects:
             object.process()
         pygame.display.flip()
@@ -426,7 +527,7 @@ def help_page_2():
 
 
 def progress():
-    global count
+    global count, fl_pause, vol
     objects.clear()
     screen = pygame.display.set_mode((500, 500))
     name = ["        Прогресс", ""]
@@ -461,6 +562,60 @@ def progress():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 terminate()
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE:
+                    fl_pause = not fl_pause
+                    if fl_pause:
+                        pygame.mixer.music.pause()
+                    else:
+                        pygame.mixer.music.unpause()
+                elif event.key == pygame.K_MINUS:
+                    vol -= 0.1
+                    pygame.mixer.music.set_volume(vol)
+                elif event.key == pygame.K_EQUALS:
+                    vol += 0.1
+                    pygame.mixer.music.set_volume(vol)
+        for object in objects:
+            object.process()
+        pygame.display.flip()
+        clock.tick(FPS)
+
+
+def settings():
+    global fl_pause, vol
+    objects.clear()
+    screen = pygame.display.set_mode((500, 500))
+    name = ["       Настройки", "", "Настройки скоро", "появятся"]
+    screen.fill((0, 100, 255))
+    font = pygame.font.SysFont('Times New Roman', 63)
+    text_coord = 50
+    Button(10, 10, 100, 50, 'Назад', back)
+    for line in name:
+        line_rendered = font.render(line, 1, (0, 255, 0))
+        line_rect = line_rendered.get_rect()
+        text_coord += 10
+        line_rect.top = text_coord
+        line_rect.x = 10
+        text_coord += line_rect.height
+        screen.blit(line_rendered, line_rect)
+
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                terminate()
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE:
+                    fl_pause = not fl_pause
+                    if fl_pause:
+                        pygame.mixer.music.pause()
+                    else:
+                        pygame.mixer.music.unpause()
+                elif event.key == pygame.K_MINUS:
+                    vol -= 0.1
+                    pygame.mixer.music.set_volume(vol)
+                elif event.key == pygame.K_EQUALS:
+                    vol += 0.1
+                    pygame.mixer.music.set_volume(vol)
         for object in objects:
             object.process()
         pygame.display.flip()
@@ -468,6 +623,7 @@ def progress():
 
 
 def shop():
+    global fl_pause, vol
     objects.clear()
     screen = pygame.display.set_mode((500, 500))
     name = ["        Магазин", "", "Магазин скоро", "появится!"]
@@ -488,6 +644,19 @@ def shop():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 terminate()
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE:
+                    fl_pause = not fl_pause
+                    if fl_pause:
+                        pygame.mixer.music.pause()
+                    else:
+                        pygame.mixer.music.unpause()
+                elif event.key == pygame.K_MINUS:
+                    vol -= 0.1
+                    pygame.mixer.music.set_volume(vol)
+                elif event.key == pygame.K_EQUALS:
+                    vol += 0.1
+                    pygame.mixer.music.set_volume(vol)
         for object in objects:
             object.process()
         pygame.display.flip()
