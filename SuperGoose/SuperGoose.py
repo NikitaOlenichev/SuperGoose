@@ -15,7 +15,7 @@ font = pygame.font.SysFont('Arial', 40)
 tile_width = tile_height = 50
 all_sprites = pygame.sprite.Group()
 tiles_group = pygame.sprite.Group()
-player_group = pygame.sprite.Group()
+player_group = pygame.sprite.Group() # КАРТИНКИ ФОНА НЕ КОНЕЧНЫЙ ВАРИАНТ
 camera_group = pygame.sprite.Group()
 box_group = pygame.sprite.Group()
 player = None
@@ -85,26 +85,18 @@ def back():
 def start_screen():
     global fl_pause, vol
     #clock = pygame.time.Clock()
-    screen = pygame.display.set_mode((500, 500))
-    screen.fill((0, 100, 255))
+    width = 500
+    height = 500
+    screen = pygame.display.set_mode((width, height))
+    fon = pygame.transform.scale(load_image('supergoose.png'), (width, height))
+    screen.blit(fon, (0, 0))
     #effects = AnimatedSprite(load_image('8.png'), 1, 4, 10, 10)
-    rules = ["      SuperGoosе", ""]
-    font = pygame.font.SysFont('Times New Roman', 63)
-    text_coord = 50
     Button(60, 200, 400, 75, 'Уровни', levels)
     Button(60, 290, 195, 75, 'SuperGoose', SuperGoose)
     Button(265, 290, 195, 75, 'Справка', help)
     Button(60, 380, 195, 75, 'Прогресс', progress)
     Button(265, 380, 195, 75, 'Магазин', shop)
     Button(420, 5, 75, 50, 'Set', settings)
-    for line in rules:
-        line_rendered = font.render(line, 1, (0, 255, 0))
-        line_rect = line_rendered.get_rect()
-        text_coord += 10
-        line_rect.top = text_coord
-        line_rect.x = 10
-        text_coord += line_rect.height
-        screen.blit(line_rendered, line_rect)
 
     while True:
         for event in pygame.event.get():
@@ -139,7 +131,7 @@ class Button():
         self.onclickFunction = onclickFunction
         self.onePress = onePress
         self.alreadyPressed = False
-        self.fillColors = {'normal': (0, 255, 0), 'hover': (175, 0, 0), 'pressed': (0, 0, 255)}
+        self.fillColors = {'normal': (0, 162, 232), 'hover': (237, 28, 36), 'pressed': (0, 0, 255)}
         self.buttonSurface = pygame.Surface((self.width, self.height))
         self.buttonRect = pygame.Rect(self.x, self.y, self.width, self.height)
         self.buttonSurf = font.render(buttonText, True, (20, 20, 20))
@@ -168,9 +160,12 @@ class Button():
 def levels():
     global fl_pause, vol
     objects.clear()
-    screen = pygame.display.set_mode((506, 500))
+    width = 506
+    height = 500
+    screen = pygame.display.set_mode((width, height))
+    fon = pygame.transform.scale(load_image('2goose.png'), (width, height))
+    screen.blit(fon, (0, 0))
     rules = ["          Уровни", "", "Выберите уровень:"]
-    screen.fill((0, 100, 255))
     font = pygame.font.SysFont('Times New Roman', 60)
     text_coord = 20
     Button(15, 280, 155, 75, 'Уровень 1', labyrinth_level)
@@ -181,7 +176,7 @@ def levels():
     Button(335, 365, 155, 75, 'Уровень 7', labyrinth_level)
     Button(10, 10, 100, 50, 'Назад', back)
     for line in rules:
-        line_rendered = font.render(line, 1, (0, 255, 0))
+        line_rendered = font.render(line, 1, (237, 28, 36))
         line_rect = line_rendered.get_rect()
         text_coord += 10
         line_rect.top = text_coord
@@ -382,17 +377,20 @@ def end_game():
 def SuperGoose():
     global fl_pause, vol
     objects.clear()
-    screen = pygame.display.set_mode((700, 600))
+    width = 700
+    height = 600
+    screen = pygame.display.set_mode((width, height))
+    fon = pygame.transform.scale(load_image('sgoose.png'), (width, height))
+    screen.blit(fon, (0, 0))
     with open('output/Goose.txt', 'r') as file:
         lines = file.readlines()
     name = ["                     SuperGoose", ""]
-    screen.fill((0, 100, 255))
     font = pygame.font.SysFont('Times New Roman', 30)
     font1 = pygame.font.SysFont('Times New Roman', 45)
     text_coord = 50
     Button(10, 10, 100, 50, 'Назад', back)
     for line in name:
-        line_rendered = font1.render(line, 1, (0, 255, 0))
+        line_rendered = font1.render(line, 1, (237, 28, 36))
         line_rect = line_rendered.get_rect()
         text_coord += 10
         line_rect.top = text_coord
@@ -400,7 +398,7 @@ def SuperGoose():
         text_coord += line_rect.height
         screen.blit(line_rendered, line_rect)
     for line in lines:
-        line_rendered = font.render(line, 1, (0, 255, 0))
+        line_rendered = font.render(line, 1, (237, 28, 36))
         line_rect = line_rendered.get_rect()
         text_coord += 10
         line_rect.top = text_coord
@@ -434,18 +432,21 @@ def SuperGoose():
 def help():
     global fl_pause, vol
     objects.clear()
+    width = 605
+    height = 600
     screen = pygame.display.set_mode((605, 600))
+    fon = pygame.transform.scale(load_image('superman.png'), (width, height))
+    screen.blit(fon, (0, 0))
     with open('output/help1.txt', 'r', encoding='utf-8') as file:
         lines = file.readlines()
     name = ["          Справка", ""]
-    screen.fill((0, 100, 255))
     font = pygame.font.SysFont('Times New Roman', 60)
     font1 = pygame.font.SysFont('Times New Roman', 30)
     text_coord = 50
     Button(10, 10, 100, 50, 'Назад', back)
     Button(410, 10, 185, 50, 'Страница 2', help_page_2)
     for line in name:
-        line_rendered = font.render(line, 1, (0, 255, 0))
+        line_rendered = font.render(line, 1, (237, 28, 36))
         line_rect = line_rendered.get_rect()
         text_coord += 10
         line_rect.top = text_coord
@@ -453,7 +454,7 @@ def help():
         text_coord += line_rect.height
         screen.blit(line_rendered, line_rect)
     for line in lines:
-        line_rendered = font1.render(line, 1, (0, 255, 0))
+        line_rendered = font1.render(line, 1, (237, 28, 36))
         line_rect = line_rendered.get_rect()
         text_coord += 10
         line_rect.top = text_coord
@@ -487,15 +488,18 @@ def help():
 def help_page_2():
     global fl_pause, vol
     objects.clear()
+    width = 605
+    height = 600
     screen = pygame.display.set_mode((605, 600))
+    fon = pygame.transform.scale(load_image('superman.png'), (width, height))
+    screen.blit(fon, (0, 0))
     with open('output/help2.txt', 'r', encoding='utf-8') as file:
         lines = file.readlines()
-    screen.fill((0, 100, 255))
     font = pygame.font.SysFont('Times New Roman', 30)
     text_coord = 50
     Button(10, 10, 100, 50, 'Назад', back)
     for line in lines:
-        line_rendered = font.render(line, 1, (0, 255, 0))
+        line_rendered = font.render(line, 1, (237, 28, 36))
         line_rect = line_rendered.get_rect()
         text_coord += 10
         line_rect.top = text_coord
@@ -529,20 +533,23 @@ def help_page_2():
 def progress():
     global count, fl_pause, vol
     objects.clear()
-    screen = pygame.display.set_mode((500, 500))
+    width = 500
+    height = 500
+    screen = pygame.display.set_mode((width, height))
+    fon = pygame.transform.scale(load_image('sgoose.png'), (width, height))
+    screen.blit(fon, (0, 0))
     name = ["        Прогресс", ""]
     text = ['Твой прогресс:', f'                 {count} из 6 уровней!']
     if count == 6:
         text.append('Молодец!')
         text.append('Ты прошёл игру!!!')
         count = 0
-    screen.fill((0, 100, 255))
     font = pygame.font.SysFont('Times New Roman', 63)
     font1 = pygame.font.SysFont('Times New Roman', 45)
     text_coord = 50
     Button(10, 10, 100, 50, 'Назад', back)
     for line in name:
-        line_rendered = font.render(line, 1, (0, 255, 0))
+        line_rendered = font.render(line, 1, (237, 28, 36))
         line_rect = line_rendered.get_rect()
         text_coord += 10
         line_rect.top = text_coord
@@ -550,7 +557,7 @@ def progress():
         text_coord += line_rect.height
         screen.blit(line_rendered, line_rect)
     for line in text:
-        line_rendered = font1.render(line, 1, (0, 255, 0))
+        line_rendered = font1.render(line, 1, (237, 28, 36))
         line_rect = line_rendered.get_rect()
         text_coord += 10
         line_rect.top = text_coord
@@ -584,14 +591,17 @@ def progress():
 def settings():
     global fl_pause, vol
     objects.clear()
-    screen = pygame.display.set_mode((500, 500))
+    width = 500
+    height = 500
+    screen = pygame.display.set_mode((width, height))
+    fon = pygame.transform.scale(load_image('superman.png'), (width, height))
+    screen.blit(fon, (0, 0))
     name = ["       Настройки", "", "Настройки скоро", "появятся"]
-    screen.fill((0, 100, 255))
     font = pygame.font.SysFont('Times New Roman', 63)
     text_coord = 50
     Button(10, 10, 100, 50, 'Назад', back)
     for line in name:
-        line_rendered = font.render(line, 1, (0, 255, 0))
+        line_rendered = font.render(line, 1, (237, 28, 36))
         line_rect = line_rendered.get_rect()
         text_coord += 10
         line_rect.top = text_coord
@@ -625,14 +635,17 @@ def settings():
 def shop():
     global fl_pause, vol
     objects.clear()
-    screen = pygame.display.set_mode((500, 500))
+    width = 500
+    height = 500
+    screen = pygame.display.set_mode((width, height))
+    fon = pygame.transform.scale(load_image('sgoose.png'), (width, height))
+    screen.blit(fon, (0, 0))
     name = ["        Магазин", "", "Магазин скоро", "появится!"]
-    screen.fill((0, 100, 255))
     font = pygame.font.SysFont('Times New Roman', 63)
     text_coord = 50
     Button(10, 10, 100, 50, 'Назад', back)
     for line in name:
-        line_rendered = font.render(line, 1, (0, 255, 0))
+        line_rendered = font.render(line, 1, (237, 28, 36))
         line_rect = line_rendered.get_rect()
         text_coord += 10
         line_rect.top = text_coord
