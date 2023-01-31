@@ -15,7 +15,7 @@ font = pygame.font.SysFont('Arial', 40)
 tile_width = tile_height = 50
 all_sprites = pygame.sprite.Group()
 tiles_group = pygame.sprite.Group()
-player_group = pygame.sprite.Group() # КАРТИНКИ ФОНА НЕ КОНЕЧНЫЙ ВАРИАНТ
+player_group = pygame.sprite.Group()
 camera_group = pygame.sprite.Group()
 enemy_group = pygame.sprite.Group()
 box_group = pygame.sprite.Group()
@@ -89,6 +89,8 @@ def back():
 def start_screen():
     global fl_pause, vol
     #clock = pygame.time.Clock()
+    pygame.mixer.music.load('music/start_window.mp3')
+    pygame.mixer.music.play(-1)
     width = 500
     height = 500
     screen = pygame.display.set_mode((width, height))
@@ -167,7 +169,7 @@ def levels():
     width = 506
     height = 500
     screen = pygame.display.set_mode((width, height))
-    fon = pygame.transform.scale(load_image('2goose.png'), (width, height))
+    fon = pygame.transform.scale(load_image('sgoose.png'), (width, height))
     screen.blit(fon, (0, 0))
     rules = ["          Уровни", "", "Выберите уровень:"]
     font = pygame.font.SysFont('Times New Roman', 60)
@@ -212,8 +214,10 @@ def levels():
 
 
 def labyrinth_level():
-    global fl_pause, vol
+    global fl_pause, vol, count
     objects.clear()
+    pygame.mixer.music.load('music/levels.mp3')
+    pygame.mixer.music.play(-1)
     screen = pygame.display.set_mode((1350, 850))
     player, enemy, level_x, level_y = generate_level(load_level('labyrinth_level.txt'))
     pygame.time.set_timer(ENEMY_EVENT_TYPE, 500)
@@ -501,7 +505,7 @@ def SuperGoose():
         text_coord += line_rect.height
         screen.blit(line_rendered, line_rect)
     for line in lines:
-        line_rendered = font.render(line, 1, (237, 28, 36))
+        line_rendered = font.render(line, 1, (0, 0, 0))
         line_rect = line_rendered.get_rect()
         text_coord += 10
         line_rect.top = text_coord
@@ -537,9 +541,8 @@ def help():
     objects.clear()
     width = 605
     height = 600
-    screen = pygame.display.set_mode((605, 600))
-    fon = pygame.transform.scale(load_image('superman.png'), (width, height))
-    screen.blit(fon, (0, 0))
+    screen = pygame.display.set_mode((width, height))
+    screen.fill((0, 162, 232))
     with open('output/help1.txt', 'r', encoding='utf-8') as file:
         lines = file.readlines()
     name = ["          Справка", ""]
@@ -549,7 +552,7 @@ def help():
     Button(10, 10, 100, 50, 'Назад', back)
     Button(410, 10, 185, 50, 'Страница 2', help_page_2)
     for line in name:
-        line_rendered = font.render(line, 1, (237, 28, 36))
+        line_rendered = font.render(line, 1, (0, 0, 0))
         line_rect = line_rendered.get_rect()
         text_coord += 10
         line_rect.top = text_coord
@@ -638,7 +641,7 @@ def progress():
     width = 500
     height = 500
     screen = pygame.display.set_mode((width, height))
-    fon = pygame.transform.scale(load_image('sgoose.png'), (width, height))
+    fon = pygame.transform.scale(load_image('goose4.png'), (width, height))
     screen.blit(fon, (0, 0))
     name = ["        Прогресс", ""]
     text = ['Твой прогресс:', f'                 {count} из 6 уровней!']
@@ -696,7 +699,7 @@ def settings():
     width = 500
     height = 500
     screen = pygame.display.set_mode((width, height))
-    fon = pygame.transform.scale(load_image('superman.png'), (width, height))
+    fon = pygame.transform.scale(load_image('goose5.png'), (width, height))
     screen.blit(fon, (0, 0))
     name = ["       Настройки", "", "Настройки скоро", "появятся"]
     font = pygame.font.SysFont('Times New Roman', 63)
@@ -740,8 +743,7 @@ def shop():
     width = 500
     height = 500
     screen = pygame.display.set_mode((width, height))
-    fon = pygame.transform.scale(load_image('sgoose.png'), (width, height))
-    screen.blit(fon, (0, 0))
+    screen.fill((0, 162, 232))
     name = ["        Магазин", "", "Магазин скоро", "появится!"]
     font = pygame.font.SysFont('Times New Roman', 63)
     text_coord = 50
