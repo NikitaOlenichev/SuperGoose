@@ -17,13 +17,16 @@ all_sprites = pygame.sprite.Group()
 tiles_group = pygame.sprite.Group()
 player_group = pygame.sprite.Group() # КАРТИНКИ ФОНА НЕ КОНЕЧНЫЙ ВАРИАНТ
 camera_group = pygame.sprite.Group()
+enemy_group = pygame.sprite.Group()
 box_group = pygame.sprite.Group()
+ENEMY_EVENT_TYPE = 30
 player = None
 count = 0
 pygame.mixer.music.load('music/start_window.mp3')
 pygame.mixer.music.play(-1)
 fl_pause = False
 vol = 1.0
+levels_passed = [0 for i in range(6)]
 
 
 def load_image(name, colorkey=None):
@@ -42,7 +45,7 @@ def load_image(name, colorkey=None):
     return image
 
 
-'''class AnimatedSprite(pygame.sprite.Sprite):
+class AnimatedSprite(pygame.sprite.Sprite):
     def __init__(self, sheet, columns, rows, x, y):
         super().__init__(all_sprites)
         self.frames = []
@@ -52,22 +55,21 @@ def load_image(name, colorkey=None):
         self.rect = self.rect.move(x, y)
 
     def cut_sheet(self, sheet, columns, rows):
-        self.rect = pygame.Rect(0, 0, sheet.get_width() // columns,
-                                sheet.get_height() // rows)
+        self.rect = pygame.Rect(0, 0, sheet.get_width() // columns, sheet.get_height() // rows)
         for j in range(rows):
             for i in range(columns):
                 frame_location = (self.rect.w * i, self.rect.h * j)
-                self.frames.append(sheet.subsurface(pygame.Rect(
-                    frame_location, self.rect.size)))
+                self.frames.append(sheet.subsurface(pygame.Rect(frame_location, self.rect.size)))
 
     def update(self):
         self.cur_frame = (self.cur_frame + 1) % len(self.frames)
-        self.image = self.frames[self.cur_frame]'''
+        self.image = self.frames[self.cur_frame]
 
 
 tile_images = {
     'empty': pygame.transform.scale(load_image('ground.png'), (50, 50)),
-    'wall': pygame.transform.scale(load_image('wall.png'), (50, 50))
+    'wall': pygame.transform.scale(load_image('wall.png'), (50, 50)),
+    'cup': pygame.transform.scale(load_image('cup.png'), (50, 50))
 }
 player_image = pygame.transform.scale(load_image('goose.png'), (50, 50))
 
@@ -171,9 +173,9 @@ def levels():
     Button(15, 280, 155, 75, 'Уровень 1', labyrinth_level)
     Button(175, 280, 155, 75, 'Уровень 2', fly_level)
     Button(335, 280, 155, 75, 'Уровень 3', fly_level_enemies)
-    Button(15, 365, 155, 75, 'Уровень 5', labyrinth_level)
-    Button(175, 365, 155, 75, 'Уровень 6', labyrinth_level)
-    Button(335, 365, 155, 75, 'Уровень 7', labyrinth_level)
+    Button(15, 365, 155, 75, 'Уровень 4', labyrinth_level)
+    Button(175, 365, 155, 75, 'Уровень 5', labyrinth_level)
+    Button(335, 365, 155, 75, 'Уровень 6', labyrinth_level)
     Button(10, 10, 100, 50, 'Назад', back)
     for line in rules:
         line_rendered = font.render(line, 1, (237, 28, 36))
@@ -208,10 +210,11 @@ def levels():
 
 
 def labyrinth_level():
-    global fl_pause, vol
+    global fl_pause, vol, count
     objects.clear()
     screen = pygame.display.set_mode((1350, 850))
-    player, level_x, level_y = generate_level(load_level('labyrinth_level.txt'))
+    player, enemy, level_x, level_y = generate_level(load_level('labyrinth_level.txt'))
+    pygame.time.set_timer(ENEMY_EVENT_TYPE, 500)
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -245,11 +248,77 @@ def labyrinth_level():
                 elif event.key == pygame.K_EQUALS:
                     vol += 0.1
                     pygame.mixer.music.set_volume(vol)
+            if event.type == ENEMY_EVENT_TYPE:
+                move_enemy(enemy, player)
+        if player.rect.x == 1250 and player.rect.y == 750:
+            print('Поздравляем, вы прошли первый уровень!')
+            pygame.time.set_timer(ENEMY_EVENT_TYPE, 0)
+            enemy.kill()
+            player.kill()
+            if levels_passed[0] == 0:
+                count += 1
+                levels_passed[0] = 1
+            back()
+            return
+        if player.rect == enemy.rect:
+            print('Вы проиграли :(')
+            pygame.time.set_timer(ENEMY_EVENT_TYPE, 0)
+            enemy.kill()
+            player.kill()
+            back()
+            return
         screen.fill((0, 0, 0))
         tiles_group.draw(screen)
         player_group.draw(screen)
+        enemy_group.draw(screen)
         pygame.display.flip()
         clock.tick(FPS)
+
+
+def find_path_step(start, target):
+    INF = 1000
+    x, y = start
+    distance = [[INF] * (screen.get_width() // STEP) for i in range(screen.get_height() // STEP)]
+    distance[y][x] = 0
+    prev = [[None] * (screen.get_width() // STEP) for i in range(screen.get_height() // STEP)]
+    queue = [(x, y)]
+    while queue:
+        x, y = queue.pop(0)
+        for dx, dy in (1, 0), (0, 1), (-1, 0), (0, -1):
+            next_x, next_y = x + dx, y + dy
+            if 0 <= next_x < screen.get_width() // STEP and\
+                    0 < next_y < screen.get_height() // STEP and\
+                    is_free(next_x, next_y) and distance[next_y][next_x] == INF:
+                distance[next_y][next_x] = distance[y][x] + 1
+                prev[next_y][next_x] = (x, y)
+                queue.append((next_x, next_y))
+    x, y = target
+    if distance[y][x] == INF or start == target:
+        return start
+    while prev[y][x] != start:
+        x, y = prev[y][x]
+    return x * STEP, y * STEP
+
+
+def move_enemy(enemy, player):
+    past_x, past_y = enemy.rect.x, enemy.rect.y
+    next_position = find_path_step((enemy.rect.x // STEP, enemy.rect.y // STEP),
+                                   (player.rect.x // STEP, player.rect.y // STEP))
+    enemy.rect.x, enemy.rect.y = next_position
+    if past_x - enemy.rect.x < 0:
+        enemy.update_frame('right')
+    elif past_x - enemy.rect.x > 0:
+        enemy.update_frame('left')
+    elif past_y - enemy.rect.y < 0:
+        enemy.update_frame('down')
+    elif past_y - enemy.rect.y > 0:
+        enemy.update_frame('up')
+
+
+def is_free(x, y):
+    if load_level('labyrinth_level.txt')[y][x] != '#':
+        return True
+    return False
 
 
 def fly_level():
@@ -257,7 +326,7 @@ def fly_level():
     camera = Camera()
     objects.clear()
     screen = pygame.display.set_mode((500, 350))
-    player, level_x, level_y = generate_level(load_level('fly_level.txt'))
+    player, enemy, level_x, level_y = generate_level(load_level('fly_level.txt'))
     cam = Player(0, 150, True)
     while True:
         for event in pygame.event.get():
@@ -311,6 +380,10 @@ def fly_level_enemies():
     pass
 
 
+def end_game():
+    pass
+
+
 def load_level(level_name):
     level_name = 'data/levels/' + level_name
     with open(level_name, 'r') as mapFile:
@@ -338,6 +411,32 @@ class Player(pygame.sprite.Sprite):
         self.rect = self.image.get_rect().move(tile_width * pos_x, tile_height * pos_y)
 
 
+class Enemy(pygame.sprite.Sprite):
+    def __init__(self, pos_x, pos_y):
+        super().__init__(enemy_group, all_sprites)
+        self.enemy_image = AnimatedSprite(load_image('wolf.png'), 3, 4, 0, 0)
+        self.image = pygame.transform.scale(self.enemy_image.image, (50, 50))
+        self.rect = self.image.get_rect().move(tile_width * pos_x, tile_height * pos_y)
+
+    def update_frame(self, direction):
+        if direction == 'right':
+            self.enemy_image.cur_frame = 6 + self.enemy_image.cur_frame % 3 + 1
+            self.enemy_image.image = self.enemy_image.frames[self.enemy_image.cur_frame - 1]
+            self.image = pygame.transform.scale(self.enemy_image.image, (50, 50))
+        elif direction == 'left':
+            self.enemy_image.cur_frame = 3 + self.enemy_image.cur_frame % 3 + 1
+            self.enemy_image.image = self.enemy_image.frames[self.enemy_image.cur_frame - 1]
+            self.image = pygame.transform.scale(self.enemy_image.image, (50, 50))
+        elif direction == 'down':
+            self.enemy_image.cur_frame = 0 + self.enemy_image.cur_frame % 3 + 1
+            self.enemy_image.image = self.enemy_image.frames[self.enemy_image.cur_frame - 1]
+            self.image = pygame.transform.scale(self.enemy_image.image, (50, 50))
+        elif direction == 'up':
+            self.enemy_image.cur_frame = 9 + self.enemy_image.cur_frame % 3 + 1
+            self.enemy_image.image = self.enemy_image.frames[self.enemy_image.cur_frame - 1]
+            self.image = pygame.transform.scale(self.enemy_image.image, (50, 50))
+
+
 class Camera:
     def __init__(self):
         self.dx = 0
@@ -356,7 +455,7 @@ class Camera:
 
 
 def generate_level(level):
-    new_player, x, y = None, None, None
+    new_player, new_enemy, x, y = None, None, None, None
     for y in range(len(level)):
         for x in range(len(level[y])):
             if level[y][x] == '.':
@@ -366,12 +465,12 @@ def generate_level(level):
             elif level[y][x] == '@':
                 Tile('empty', x, y)
                 new_player = Player(x, y)
-    return new_player, x, y
-
-
-def end_game():
-    print('Игра окончена')
-    terminate()
+            elif level[y][x] == '*':
+                Tile('cup', x, y)
+            elif level[y][x] == '!':
+                Tile('empty', x, y)
+                new_enemy = Enemy(x, y)
+    return new_player, new_enemy, x, y
 
 
 def SuperGoose():
