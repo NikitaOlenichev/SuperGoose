@@ -120,13 +120,11 @@ def back():
 # стартовый (главный) экран
 def start_screen():
     global coin
-    #clock = pygame.time.Clock()
     width = 500
     height = 500
     screen = pygame.display.set_mode((width, height))
     fon = pygame.transform.scale(load_image('supergoose.png'), (width, height))
     screen.blit(fon, (0, 0))
-    #effects = AnimatedSprite(load_image('8.png'), 1, 4, 10, 10)
     Button(60, 200, 400, 75, 'Уровни', levels)
     Button(60, 290, 195, 75, 'SuperGoose', SuperGoose)
     Button(265, 290, 195, 75, 'Справка', help)
@@ -1064,7 +1062,7 @@ class Camera:
         self.dy = -(target.rect.y + target.rect.h // 2 - height // 2)
 
 
-# метод для загрузки кровня
+# метод для загрузки уровня
 def generate_level(level):
     new_player, enemies, x, y = None, [], None, None
     for y in range(len(level)):
