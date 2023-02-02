@@ -1,6 +1,7 @@
 import pygame
 import os
 import sys
+import gc
 
 # создаём главное окно, основные переменные, группы спрайтов и конмтанты
 pygame.init()
@@ -20,6 +21,8 @@ enemy_group = pygame.sprite.Group()
 box_group = pygame.sprite.Group()
 ENEMY_EVENT_TYPE = 30
 player = None
+enemy = None
+enemies = None
 count = 0
 pygame.mixer.music.load('music/start_window.mp3')
 pygame.mixer.music.play(-1)
@@ -97,6 +100,17 @@ def terminate():
 
 # метод выхода на главный экран
 def back():
+    global player, enemy, enemies
+    for obj in gc.get_objects():
+        if isinstance(obj, Tile):
+            obj.kill()
+    if not (enemies is None):
+        for enem in enemies:
+            enem.kill()
+    if not (enemy is None):
+        enemy.kill()
+    if not (player is None):
+        player.kill()
     objects.clear()
     pygame.mixer.music.load('music/start_window.mp3')
     pygame.mixer.music.play(-1)
@@ -188,12 +202,12 @@ def levels():
     rules = ["          Уровни", "", "Выберите уровень:"]
     font = pygame.font.SysFont('Times New Roman', 60)
     text_coord = 20
-    Button(15, 280, 155, 75, 'Уровень 1', labyrinth_level)
-    Button(175, 280, 155, 75, 'Уровень 2', fly_level)
-    Button(335, 280, 155, 75, 'Уровень 3', fly_level_enemies)
-    Button(15, 365, 155, 75, 'Уровень 4', labyrinth_level)
-    Button(175, 365, 155, 75, 'Уровень 5', labyrinth_level)
-    Button(335, 365, 155, 75, 'Уровень 6', labyrinth_level)
+    Button(15, 280, 155, 75, 'Уровень 1', labyrinth_level_1)
+    Button(175, 280, 155, 75, 'Уровень 2', labyrinth_level_2)
+    Button(335, 280, 155, 75, 'Уровень 3', labyrinth_level_3)
+    Button(15, 365, 155, 75, 'Уровень 4', labyrinth_level_4)
+    Button(175, 365, 155, 75, 'Уровень 5', fly_level)
+    Button(335, 365, 155, 75, 'Уровень 6', fly_level_enemies)
     Button(10, 10, 100, 50, 'Назад', back)
     for line in rules:
         line_rendered = font.render(line, 1, (0, 0, 0))
@@ -223,71 +237,376 @@ def levels():
         clock.tick(FPS)
 
 
-# создаём уровень лабиринт с врагом
-def labyrinth_level():
-    global count, coin
+# создаём первый уровень лабиринт с врагом
+def labyrinth_level_1():
+    global count, coin, player, enemy
     objects.clear()
     pygame.mixer.music.load('music/levels.mp3')
     pygame.mixer.music.play(-1)
-    screen = pygame.display.set_mode((1350, 850))
-    player, enemy, level_x, level_y = generate_level(load_level('labyrinth_level.txt'))
+    player, enemies, level_x, level_y = generate_level(load_level('labyrinth_level_1.txt'))
+    size = width, height = level_x * STEP + STEP, level_y * STEP + STEP
+    enemy = enemies[0]
+    screen = pygame.display.set_mode(size)
     pygame.time.set_timer(ENEMY_EVENT_TYPE, 500)
+    paused = False
     while True:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                terminate()
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_LEFT:
-                    player.rect.x -= STEP
-                    if pygame.sprite.spritecollideany(player, box_group):
-                        player.rect.x += STEP
-                if event.key == pygame.K_RIGHT:
-                    player.rect.x += STEP
-                    if pygame.sprite.spritecollideany(player, box_group):
+        if paused:
+            fon = pygame.transform.scale(load_image('pause_goose.png'), (width // 2, height // 2))
+            screen.blit(fon, (width // 4, height // 4))
+            Button(width // 2 - 175, height - height // 3, 350, 50, 'Назад', back)
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    terminate()
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_ESCAPE:
+                        paused = False
+                    if event.key == pygame.K_SPACE:
+                        m_pause()
+                    if event.key == pygame.K_MINUS:
+                        m_minus()
+                    if event.key == pygame.K_EQUALS:
+                        m_plus()
+                    if event.key == pygame.K_RCTRL or event.key == pygame.K_LCTRL:
+                            coin += 1000000
+            for object in objects:
+                object.process()
+            pygame.display.flip()
+            clock.tick(FPS)
+        else:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    terminate()
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_LEFT:
                         player.rect.x -= STEP
-                if event.key == pygame.K_DOWN:
-                    player.rect.y += STEP
-                    if pygame.sprite.spritecollideany(player, box_group):
-                        player.rect.y -= STEP
-                if event.key == pygame.K_UP:
-                    player.rect.y -= STEP
-                    if pygame.sprite.spritecollideany(player, box_group):
+                        if pygame.sprite.spritecollideany(player, box_group):
+                            player.rect.x += STEP
+                    if event.key == pygame.K_RIGHT:
+                        player.rect.x += STEP
+                        if pygame.sprite.spritecollideany(player, box_group):
+                            player.rect.x -= STEP
+                    if event.key == pygame.K_DOWN:
                         player.rect.y += STEP
-                if event.key == pygame.K_SPACE:
-                    m_pause()
-                elif event.key == pygame.K_MINUS:
-                    m_minus()
-                elif event.key == pygame.K_EQUALS:
-                    m_plus()
-                elif event.key == pygame.K_RCTRL or event.key == pygame.K_LCTRL:
-                        coin += 1000000
-            if event.type == ENEMY_EVENT_TYPE:
-                move_enemy(enemy, player)
-        if player.rect.x == 1250 and player.rect.y == 750:
-            pygame.time.set_timer(ENEMY_EVENT_TYPE, 0)
-            enemy.kill()
-            player.kill()
-            if levels_passed[0] == 0:
-                count += 1
-                levels_passed[0] = 1
-            win_game()
-            return
-        if player.rect == enemy.rect:
-            pygame.time.set_timer(ENEMY_EVENT_TYPE, 0)
-            enemy.kill()
-            player.kill()
-            lose_game()
-            return
-        screen.fill((0, 0, 0))
-        tiles_group.draw(screen)
-        player_group.draw(screen)
-        enemy_group.draw(screen)
-        pygame.display.flip()
-        clock.tick(FPS)
+                        if pygame.sprite.spritecollideany(player, box_group):
+                            player.rect.y -= STEP
+                    if event.key == pygame.K_UP:
+                        player.rect.y -= STEP
+                        if pygame.sprite.spritecollideany(player, box_group):
+                            player.rect.y += STEP
+                    if event.key == pygame.K_SPACE:
+                        m_pause()
+                    if event.key == pygame.K_MINUS:
+                        m_minus()
+                    if event.key == pygame.K_EQUALS:
+                        m_plus()
+                    if event.key == pygame.K_RCTRL or event.key == pygame.K_LCTRL:
+                            coin += 1000000
+                    if event.key == pygame.K_ESCAPE:
+                        paused = True
+                if event.type == ENEMY_EVENT_TYPE:
+                    move_enemy(enemy, player, load_level('labyrinth_level_1.txt'))
+            if player.rect.x == 500 and player.rect.y == 50:
+                pygame.time.set_timer(ENEMY_EVENT_TYPE, 0)
+                enemy.kill()
+                player.kill()
+                if levels_passed[0] == 0:
+                    count += 1
+                    levels_passed[0] = 1
+                    coin += 50
+                win_game()
+                return
+            if player.rect == enemy.rect:
+                pygame.time.set_timer(ENEMY_EVENT_TYPE, 0)
+                enemy.kill()
+                player.kill()
+                lose_game()
+                return
+            screen.fill((0, 0, 0))
+            tiles_group.draw(screen)
+            player_group.draw(screen)
+            enemy_group.draw(screen)
+            pygame.display.flip()
+            clock.tick(FPS)
+
+
+# создаём второй уровень лабиринт с врагом
+def labyrinth_level_2():
+    global count, coin, player, enemy
+    objects.clear()
+    pygame.mixer.music.load('music/levels.mp3')
+    pygame.mixer.music.play(-1)
+    player, enemies, level_x, level_y = generate_level(load_level('labyrinth_level_2.txt'))
+    size = width, height = level_x * STEP + STEP, level_y * STEP + STEP
+    enemy = enemies[0]
+    screen = pygame.display.set_mode(size)
+    pygame.time.set_timer(ENEMY_EVENT_TYPE, 400)
+    paused = False
+    while True:
+        if paused:
+            fon = pygame.transform.scale(load_image('pause_goose.png'), (width // 2, height // 2))
+            screen.blit(fon, (width // 4, height // 4))
+            Button(width // 2 - 175, height - height // 3, 350, 50, 'Назад', back)
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    terminate()
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_ESCAPE:
+                        paused = False
+                    if event.key == pygame.K_SPACE:
+                        m_pause()
+                    if event.key == pygame.K_MINUS:
+                        m_minus()
+                    if event.key == pygame.K_EQUALS:
+                        m_plus()
+                    if event.key == pygame.K_RCTRL or event.key == pygame.K_LCTRL:
+                            coin += 1000000
+            for object in objects:
+                object.process()
+            pygame.display.flip()
+            clock.tick(FPS)
+        else:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    terminate()
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_LEFT:
+                        player.rect.x -= STEP
+                        if pygame.sprite.spritecollideany(player, box_group):
+                            player.rect.x += STEP
+                    if event.key == pygame.K_RIGHT:
+                        player.rect.x += STEP
+                        if pygame.sprite.spritecollideany(player, box_group):
+                            player.rect.x -= STEP
+                    if event.key == pygame.K_DOWN:
+                        player.rect.y += STEP
+                        if pygame.sprite.spritecollideany(player, box_group):
+                            player.rect.y -= STEP
+                    if event.key == pygame.K_UP:
+                        player.rect.y -= STEP
+                        if pygame.sprite.spritecollideany(player, box_group):
+                            player.rect.y += STEP
+                    if event.key == pygame.K_SPACE:
+                        m_pause()
+                    if event.key == pygame.K_MINUS:
+                        m_minus()
+                    if event.key == pygame.K_EQUALS:
+                        m_plus()
+                    if event.key == pygame.K_RCTRL or event.key == pygame.K_LCTRL:
+                            coin += 1000000
+                    if event.key == pygame.K_ESCAPE:
+                        paused = True
+                if event.type == ENEMY_EVENT_TYPE:
+                    move_enemy(enemy, player, load_level('labyrinth_level_2.txt'))
+            if player.rect.x == 1250 and player.rect.y == 750:
+                pygame.time.set_timer(ENEMY_EVENT_TYPE, 0)
+                enemy.kill()
+                player.kill()
+                if levels_passed[1] == 0:
+                    count += 1
+                    levels_passed[1] = 1
+                    coin += 50
+                win_game()
+                return
+            if player.rect == enemy.rect:
+                pygame.time.set_timer(ENEMY_EVENT_TYPE, 0)
+                enemy.kill()
+                player.kill()
+                lose_game()
+                return
+            screen.fill((0, 0, 0))
+            tiles_group.draw(screen)
+            player_group.draw(screen)
+            enemy_group.draw(screen)
+            pygame.display.flip()
+            clock.tick(FPS)
+
+
+# создаём третий уровень лабиринт с врагом
+def labyrinth_level_3():
+    global count, coin, player, enemy
+    objects.clear()
+    pygame.mixer.music.load('music/levels.mp3')
+    pygame.mixer.music.play(-1)
+    player, enemies, level_x, level_y = generate_level(load_level('labyrinth_level_3.txt'))
+    size = width, height = level_x * STEP + STEP, level_y * STEP + STEP
+    enemy = enemies[0]
+    screen = pygame.display.set_mode(size)
+    pygame.time.set_timer(ENEMY_EVENT_TYPE, 350)
+    paused = False
+    while True:
+        if paused:
+            fon = pygame.transform.scale(load_image('pause_goose.png'), (width // 2, height // 2))
+            screen.blit(fon, (width // 4, height // 4))
+            Button(width // 2 - 175, height - height // 3, 350, 50, 'Назад', back)
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    terminate()
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_ESCAPE:
+                        paused = False
+                    if event.key == pygame.K_SPACE:
+                        m_pause()
+                    if event.key == pygame.K_MINUS:
+                        m_minus()
+                    if event.key == pygame.K_EQUALS:
+                        m_plus()
+                    if event.key == pygame.K_RCTRL or event.key == pygame.K_LCTRL:
+                            coin += 1000000
+            for object in objects:
+                object.process()
+            pygame.display.flip()
+            clock.tick(FPS)
+        else:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    terminate()
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_LEFT:
+                        player.rect.x -= STEP
+                        if pygame.sprite.spritecollideany(player, box_group):
+                            player.rect.x += STEP
+                    if event.key == pygame.K_RIGHT:
+                        player.rect.x += STEP
+                        if pygame.sprite.spritecollideany(player, box_group):
+                            player.rect.x -= STEP
+                    if event.key == pygame.K_DOWN:
+                        player.rect.y += STEP
+                        if pygame.sprite.spritecollideany(player, box_group):
+                            player.rect.y -= STEP
+                    if event.key == pygame.K_UP:
+                        player.rect.y -= STEP
+                        if pygame.sprite.spritecollideany(player, box_group):
+                            player.rect.y += STEP
+                    if event.key == pygame.K_SPACE:
+                        m_pause()
+                    if event.key == pygame.K_MINUS:
+                        m_minus()
+                    if event.key == pygame.K_EQUALS:
+                        m_plus()
+                    if event.key == pygame.K_RCTRL or event.key == pygame.K_LCTRL:
+                            coin += 1000000
+                    if event.key == pygame.K_ESCAPE:
+                        paused = True
+                if event.type == ENEMY_EVENT_TYPE:
+                    move_enemy(enemy, player, load_level('labyrinth_level_3.txt'))
+            if player.rect.x == 1050 and player.rect.y == 950:
+                pygame.time.set_timer(ENEMY_EVENT_TYPE, 0)
+                enemy.kill()
+                player.kill()
+                if levels_passed[2] == 0:
+                    count += 1
+                    levels_passed[2] = 1
+                    coin += 50
+                win_game()
+                return
+            if player.rect == enemy.rect:
+                pygame.time.set_timer(ENEMY_EVENT_TYPE, 0)
+                enemy.kill()
+                player.kill()
+                lose_game()
+                return
+            screen.fill((0, 0, 0))
+            tiles_group.draw(screen)
+            player_group.draw(screen)
+            enemy_group.draw(screen)
+            pygame.display.flip()
+            clock.tick(FPS)
+
+
+# создаём четвертый уровень лабиринт с врагом
+def labyrinth_level_4():
+    global count, coin, player, enemy
+    objects.clear()
+    pygame.mixer.music.load('music/levels.mp3')
+    pygame.mixer.music.play(-1)
+    player, enemies, level_x, level_y = generate_level(load_level('labyrinth_level_4.txt'))
+    size = width, height = level_x * STEP + STEP, level_y * STEP + STEP
+    enemy = enemies[0]
+    screen = pygame.display.set_mode(size)
+    pygame.time.set_timer(ENEMY_EVENT_TYPE, 300)
+    paused = False
+    while True:
+        if paused:
+            fon = pygame.transform.scale(load_image('pause_goose.png'), (width // 2, height // 2))
+            screen.blit(fon, (width // 4, height // 4))
+            Button(width // 2 - 175, height - height // 3, 350, 50, 'Назад', back)
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    terminate()
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_ESCAPE:
+                        paused = False
+                    if event.key == pygame.K_SPACE:
+                        m_pause()
+                    if event.key == pygame.K_MINUS:
+                        m_minus()
+                    if event.key == pygame.K_EQUALS:
+                        m_plus()
+                    if event.key == pygame.K_RCTRL or event.key == pygame.K_LCTRL:
+                            coin += 1000000
+            for object in objects:
+                object.process()
+            pygame.display.flip()
+            clock.tick(FPS)
+        else:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    terminate()
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_LEFT:
+                        player.rect.x -= STEP
+                        if pygame.sprite.spritecollideany(player, box_group):
+                            player.rect.x += STEP
+                    if event.key == pygame.K_RIGHT:
+                        player.rect.x += STEP
+                        if pygame.sprite.spritecollideany(player, box_group):
+                            player.rect.x -= STEP
+                    if event.key == pygame.K_DOWN:
+                        player.rect.y += STEP
+                        if pygame.sprite.spritecollideany(player, box_group):
+                            player.rect.y -= STEP
+                    if event.key == pygame.K_UP:
+                        player.rect.y -= STEP
+                        if pygame.sprite.spritecollideany(player, box_group):
+                            player.rect.y += STEP
+                    if event.key == pygame.K_SPACE:
+                        m_pause()
+                    if event.key == pygame.K_MINUS:
+                        m_minus()
+                    if event.key == pygame.K_EQUALS:
+                        m_plus()
+                    if event.key == pygame.K_RCTRL or event.key == pygame.K_LCTRL:
+                            coin += 1000000
+                    if event.key == pygame.K_ESCAPE:
+                        paused = True
+                if event.type == ENEMY_EVENT_TYPE:
+                    move_enemy(enemy, player, load_level('labyrinth_level_4.txt'))
+            if player.rect.x == 1100 and player.rect.y == 900:
+                pygame.time.set_timer(ENEMY_EVENT_TYPE, 0)
+                enemy.kill()
+                player.kill()
+                if levels_passed[3] == 0:
+                    count += 1
+                    levels_passed[3] = 1
+                    coin += 50
+                win_game()
+                return
+            if player.rect == enemy.rect:
+                pygame.time.set_timer(ENEMY_EVENT_TYPE, 0)
+                enemy.kill()
+                player.kill()
+                lose_game()
+                return
+            screen.fill((0, 0, 0))
+            tiles_group.draw(screen)
+            player_group.draw(screen)
+            enemy_group.draw(screen)
+            pygame.display.flip()
+            clock.tick(FPS)
 
 
 # создаём метод для поиска пути для врага
-def find_path_step(start, target):
+def find_path_step(start, target, level):
     INF = 1000
     x, y = start
     distance = [[INF] * (screen.get_width() // STEP) for i in range(screen.get_height() // STEP)]
@@ -300,7 +619,7 @@ def find_path_step(start, target):
             next_x, next_y = x + dx, y + dy
             if 0 <= next_x < screen.get_width() // STEP and\
                     0 < next_y < screen.get_height() // STEP and\
-                    is_free(next_x, next_y) and distance[next_y][next_x] == INF:
+                    is_free(next_x, next_y, level) and distance[next_y][next_x] == INF:
                 distance[next_y][next_x] = distance[y][x] + 1
                 prev[next_y][next_x] = (x, y)
                 queue.append((next_x, next_y))
@@ -313,31 +632,31 @@ def find_path_step(start, target):
 
 
 # создаём метод перемещения врага
-def move_enemy(enemy, player):
+def move_enemy(enemy, player, level):
     past_x, past_y = enemy.rect.x, enemy.rect.y
     next_position = find_path_step((enemy.rect.x // STEP, enemy.rect.y // STEP),
-                                   (player.rect.x // STEP, player.rect.y // STEP))
+                                   (player.rect.x // STEP, player.rect.y // STEP), level)
     enemy.rect.x, enemy.rect.y = next_position
     if past_x - enemy.rect.x < 0:
-        enemy.update_frame('right')
+        enemy.update_frame('right', 'wolf')
     elif past_x - enemy.rect.x > 0:
-        enemy.update_frame('left')
+        enemy.update_frame('left', 'wolf')
     elif past_y - enemy.rect.y < 0:
-        enemy.update_frame('down')
+        enemy.update_frame('down', 'wolf')
     elif past_y - enemy.rect.y > 0:
-        enemy.update_frame('up')
+        enemy.update_frame('up', 'wolf')
 
 
 # метод для проверки клеток лабиринта
-def is_free(x, y):
-    if load_level('labyrinth_level.txt')[y][x] != '#':
+def is_free(x, y, level):
+    if level[y][x] != '#':
         return True
     return False
 
 
 # создаём уровень с полётом
 def fly_level():
-    global coin
+    global coin, count, player
     pygame.mixer.music.load('music/levels.mp3')
     pygame.mixer.music.play(-1)
     camera = Camera()
@@ -345,58 +664,236 @@ def fly_level():
     screen = pygame.display.set_mode((500, 350))
     player, enemy, level_x, level_y = generate_level(load_level('fly_level.txt'))
     cam = Player(0, 150, True)
+    paused = False
     while True:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                terminate()
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_LEFT:
-                    player.rect.x -= STEP
-                    if pygame.sprite.spritecollideany(player, box_group):
-                        lose_game()
-                if event.key == pygame.K_RIGHT:
-                    player.rect.x += STEP
-                    if pygame.sprite.spritecollideany(player, box_group):
-                        lose_game()
-                if event.key == pygame.K_DOWN:
-                    player.rect.y += STEP
-                    if pygame.sprite.spritecollideany(player, box_group):
-                        lose_game()
-                if event.key == pygame.K_UP:
-                    player.rect.y -= STEP
-                    if pygame.sprite.spritecollideany(player, box_group):
-                        lose_game()
-                if event.key == pygame.K_SPACE:
-                    m_pause()
-                elif event.key == pygame.K_MINUS:
-                    m_minus()
-                elif event.key == pygame.K_EQUALS:
-                    m_plus()
-                elif event.key == pygame.K_RCTRL or event.key == pygame.K_LCTRL:
-                        coin += 1000000
-            if not (cam.rect.x - 250 <= player.rect.x <= cam.rect.x + 250):
+        if paused:
+            fon = pygame.transform.scale(load_image('pause_goose.png'), (250, 200))
+            screen.blit(fon, (125, 75))
+            Button(200, 225, 100, 50, 'Назад', back)
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    terminate()
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_ESCAPE:
+                        paused = False
+                    if event.key == pygame.K_SPACE:
+                        m_pause()
+                    if event.key == pygame.K_MINUS:
+                        m_minus()
+                    if event.key == pygame.K_EQUALS:
+                        m_plus()
+                    if event.key == pygame.K_RCTRL or event.key == pygame.K_LCTRL:
+                            coin += 1000000
+            for object in objects:
+                object.process()
+            pygame.display.flip()
+            clock.tick(FPS)
+        else:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    terminate()
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_LEFT:
+                        player.rect.x -= STEP
+                        if pygame.sprite.spritecollideany(player, box_group):
+                            player.kill()
+                            lose_game()
+                    if event.key == pygame.K_RIGHT:
+                        player.rect.x += STEP
+                        if pygame.sprite.spritecollideany(player, box_group):
+                            player.kill()
+                            lose_game()
+                    if event.key == pygame.K_DOWN:
+                        player.rect.y += STEP
+                        if pygame.sprite.spritecollideany(player, box_group):
+                            player.kill()
+                            lose_game()
+                    if event.key == pygame.K_UP:
+                        player.rect.y -= STEP
+                        if pygame.sprite.spritecollideany(player, box_group):
+                            player.kill()
+                            lose_game()
+                    if event.key == pygame.K_SPACE:
+                        m_pause()
+                    if event.key == pygame.K_MINUS:
+                        m_minus()
+                    if event.key == pygame.K_EQUALS:
+                        m_plus()
+                    if event.key == pygame.K_RCTRL or event.key == pygame.K_LCTRL:
+                            coin += 1000000
+                    if event.key == pygame.K_ESCAPE:
+                        paused = True
+                if not (cam.rect.x - 250 <= player.rect.x <= cam.rect.x + 250):
+                    player.kill()
+                    lose_game()
+            if pygame.sprite.spritecollideany(player, box_group):
+                player.kill()
                 lose_game()
-        player.rect.x += 1
-        cam.rect.x += 1
-        camera.update(cam)
-        for sprite in all_sprites:
-            camera.apply(sprite, level_x, level_y)
-        screen.fill((0, 0, 0))
-        camera_group.draw(screen)
-        tiles_group.draw(screen)
-        player_group.draw(screen)
-        pygame.display.flip()
-        clock.tick(FPS)
+            if player.rect.x == 3250 and player.rect.y >= 150:
+                player.kill()
+                if levels_passed[4] == 0:
+                    count += 1
+                    levels_passed[4] = 1
+                    coin += 50
+                win_game()
+                return
+            player.rect.x += 2
+            cam.rect.x += 2
+            camera.update(cam)
+            for sprite in all_sprites:
+                camera.apply(sprite, level_x, level_y)
+            screen.fill((0, 0, 0))
+            camera_group.draw(screen)
+            tiles_group.draw(screen)
+            player_group.draw(screen)
+            pygame.display.flip()
+            clock.tick(FPS)
 
 
 # создаём уровень с полётом и врагами
 def fly_level_enemies():
-    pass
+    global coin, count, player, enemy
+    pygame.mixer.music.load('music/levels.mp3')
+    pygame.mixer.music.play(-1)
+    camera = Camera()
+    objects.clear()
+    screen = pygame.display.set_mode((500, 350))
+    player, enemies, level_x, level_y = generate_level(load_level('fly_level_enemies.txt'))
+    cam = Player(0, 150, True)
+    pygame.time.set_timer(ENEMY_EVENT_TYPE, 250)
+    paused = False
+    while True:
+        if paused:
+            fon = pygame.transform.scale(load_image('pause_goose.png'), (250, 200))
+            screen.blit(fon, (125, 75))
+            Button(200, 225, 100, 50, 'Назад', back)
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    terminate()
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_ESCAPE:
+                        paused = False
+                    if event.key == pygame.K_SPACE:
+                        m_pause()
+                    if event.key == pygame.K_MINUS:
+                        m_minus()
+                    if event.key == pygame.K_EQUALS:
+                        m_plus()
+                    if event.key == pygame.K_RCTRL or event.key == pygame.K_LCTRL:
+                        coin += 1000000
+            for object in objects:
+                object.process()
+            pygame.display.flip()
+            clock.tick(FPS)
+        else:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    terminate()
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_LEFT:
+                        player.rect.x -= STEP
+                        if pygame.sprite.spritecollideany(player, box_group):
+                            player.kill()
+                            [enemy.kill() for enemy in enemies]
+                            pygame.time.set_timer(ENEMY_EVENT_TYPE, 0)
+                            lose_game()
+                    if event.key == pygame.K_RIGHT:
+                        player.rect.x += STEP
+                        if pygame.sprite.spritecollideany(player, box_group):
+                            player.kill()
+                            [enemy.kill() for enemy in enemies]
+                            pygame.time.set_timer(ENEMY_EVENT_TYPE, 0)
+                            lose_game()
+                    if event.key == pygame.K_DOWN:
+                        player.rect.y += STEP
+                        if pygame.sprite.spritecollideany(player, box_group):
+                            player.kill()
+                            [enemy.kill() for enemy in enemies]
+                            pygame.time.set_timer(ENEMY_EVENT_TYPE, 0)
+                            lose_game()
+                    if event.key == pygame.K_UP:
+                        player.rect.y -= STEP
+                        if pygame.sprite.spritecollideany(player, box_group):
+                            player.kill()
+                            [enemy.kill() for enemy in enemies]
+                            pygame.time.set_timer(ENEMY_EVENT_TYPE, 0)
+                            lose_game()
+                    if event.key == pygame.K_SPACE:
+                        m_pause()
+                    if event.key == pygame.K_MINUS:
+                        m_minus()
+                    if event.key == pygame.K_EQUALS:
+                        m_plus()
+                    if event.key == pygame.K_RCTRL or event.key == pygame.K_LCTRL:
+                        coin += 1000000
+                    if event.key == pygame.K_ESCAPE:
+                        paused = True
+                if event.type == ENEMY_EVENT_TYPE:
+                    for enemy in enemies:
+                        move_flying_enemy(enemy, pygame.sprite.spritecollideany(enemy, box_group))
+                if not (cam.rect.x - 250 <= player.rect.x <= cam.rect.x + 250):
+                    player.kill()
+                    [enemy.kill() for enemy in enemies]
+                    pygame.time.set_timer(ENEMY_EVENT_TYPE, 0)
+                    lose_game()
+            if pygame.sprite.spritecollideany(player, box_group):
+                player.kill()
+                [enemy.kill() for enemy in enemies]
+                pygame.time.set_timer(ENEMY_EVENT_TYPE, 0)
+                lose_game()
+            if pygame.sprite.spritecollideany(player, enemy_group):
+                player.kill()
+                [enemy.kill() for enemy in enemies]
+                pygame.time.set_timer(ENEMY_EVENT_TYPE, 0)
+                lose_game()
+            if player.rect.x == 3250 and player.rect.y == 150:
+                pygame.time.set_timer(ENEMY_EVENT_TYPE, 0)
+                [enemy.kill() for enemy in enemies]
+                player.kill()
+                if levels_passed[5] == 0:
+                    count += 1
+                    levels_passed[5] = 1
+                    coin += 50
+                win_game()
+                return
+            player.rect.x += 2
+            cam.rect.x += 2
+            camera.update(cam)
+            for sprite in all_sprites:
+                camera.apply(sprite, level_x, level_y)
+            screen.fill((0, 0, 0))
+            camera_group.draw(screen)
+            tiles_group.draw(screen)
+            enemy_group.draw(screen)
+            player_group.draw(screen)
+            pygame.display.flip()
+            clock.tick(FPS)
+
+
+# создаём метод перемещения летающего врага
+def move_flying_enemy(enemy, coll):
+    if enemy.direct_y == -1 and coll is None:
+        enemy.rect.y -= 10
+        enemy.update_frame('up', 'eagle')
+    elif enemy.direct_y == -1 and coll:
+        enemy.rect.y += 10
+        enemy.update_frame('up', 'eagle')
+        enemy.direct_y = 1
+    elif enemy.direct_y == 1 and coll is None:
+        enemy.rect.y += 10
+        enemy.update_frame('up', 'eagle')
+    elif enemy.direct_y == 1 and coll:
+        enemy.rect.y -= 10
+        enemy.update_frame('up', 'eagle')
+        enemy.direct_y = -1
 
 
 # создаём окно проигрыша
 def lose_game():
     global coin
+    for obj in gc.get_objects():
+        if isinstance(obj, Tile):
+            obj.kill()
     objects.clear()
     pygame.mixer.music.load('music/game_over.mp3')
     pygame.mixer.music.play()
@@ -440,6 +937,9 @@ def lose_game():
 # создаём окно победы
 def win_game():
     global coin
+    for obj in gc.get_objects():
+        if isinstance(obj, Tile):
+            obj.kill()
     objects.clear()
     pygame.mixer.music.load('music/win.mp3')
     pygame.mixer.music.play()
@@ -479,6 +979,7 @@ def win_game():
         pygame.display.flip()
         clock.tick(FPS)
 
+
 # метод загрузки уровня
 def load_level(level_name):
     level_name = 'data/levels/' + level_name
@@ -511,27 +1012,36 @@ class Player(pygame.sprite.Sprite):
 
 # создаём класс врагов
 class Enemy(pygame.sprite.Sprite):
-    def __init__(self, pos_x, pos_y):
+    def __init__(self, pos_x, pos_y, type):
         super().__init__(enemy_group, all_sprites)
-        self.enemy_image = AnimatedSprite(load_image('wolf.png'), 3, 4, 0, 0)
+        if type == 'wolf':
+            self.enemy_image = AnimatedSprite(load_image('wolf.png'), 3, 4, 0, 0)
+        elif type == 'eagle':
+            self.enemy_image = AnimatedSprite(load_image('eagle.png'), 4, 4, 0, 0)
         self.image = pygame.transform.scale(self.enemy_image.image, (50, 50))
         self.rect = self.image.get_rect().move(tile_width * pos_x, tile_height * pos_y)
+        self.direct_y = -1
 
-    def update_frame(self, direction):
-        if direction == 'right':
-            self.enemy_image.cur_frame = 6 + self.enemy_image.cur_frame % 3 + 1
-            self.enemy_image.image = self.enemy_image.frames[self.enemy_image.cur_frame - 1]
-            self.image = pygame.transform.scale(self.enemy_image.image, (50, 50))
-        elif direction == 'left':
-            self.enemy_image.cur_frame = 3 + self.enemy_image.cur_frame % 3 + 1
-            self.enemy_image.image = self.enemy_image.frames[self.enemy_image.cur_frame - 1]
-            self.image = pygame.transform.scale(self.enemy_image.image, (50, 50))
-        elif direction == 'down':
-            self.enemy_image.cur_frame = 0 + self.enemy_image.cur_frame % 3 + 1
-            self.enemy_image.image = self.enemy_image.frames[self.enemy_image.cur_frame - 1]
-            self.image = pygame.transform.scale(self.enemy_image.image, (50, 50))
-        elif direction == 'up':
-            self.enemy_image.cur_frame = 9 + self.enemy_image.cur_frame % 3 + 1
+    def update_frame(self, direction, type):
+        if type == 'wolf':
+            if direction == 'right':
+                self.enemy_image.cur_frame = 6 + self.enemy_image.cur_frame % 3 + 1
+                self.enemy_image.image = self.enemy_image.frames[self.enemy_image.cur_frame - 1]
+                self.image = pygame.transform.scale(self.enemy_image.image, (50, 50))
+            elif direction == 'left':
+                self.enemy_image.cur_frame = 3 + self.enemy_image.cur_frame % 3 + 1
+                self.enemy_image.image = self.enemy_image.frames[self.enemy_image.cur_frame - 1]
+                self.image = pygame.transform.scale(self.enemy_image.image, (50, 50))
+            elif direction == 'down':
+                self.enemy_image.cur_frame = 0 + self.enemy_image.cur_frame % 3 + 1
+                self.enemy_image.image = self.enemy_image.frames[self.enemy_image.cur_frame - 1]
+                self.image = pygame.transform.scale(self.enemy_image.image, (50, 50))
+            elif direction == 'up':
+                self.enemy_image.cur_frame = 9 + self.enemy_image.cur_frame % 3 + 1
+                self.enemy_image.image = self.enemy_image.frames[self.enemy_image.cur_frame - 1]
+                self.image = pygame.transform.scale(self.enemy_image.image, (50, 50))
+        elif type == 'eagle':
+            self.enemy_image.cur_frame = 4 + self.enemy_image.cur_frame % 4 + 1
             self.enemy_image.image = self.enemy_image.frames[self.enemy_image.cur_frame - 1]
             self.image = pygame.transform.scale(self.enemy_image.image, (50, 50))
 
@@ -556,7 +1066,7 @@ class Camera:
 
 # метод для загрузки кровня
 def generate_level(level):
-    new_player, new_enemy, x, y = None, None, None, None
+    new_player, enemies, x, y = None, [], None, None
     for y in range(len(level)):
         for x in range(len(level[y])):
             if level[y][x] == '.':
@@ -570,8 +1080,11 @@ def generate_level(level):
                 Tile('cup', x, y)
             elif level[y][x] == '!':
                 Tile('empty', x, y)
-                new_enemy = Enemy(x, y)
-    return new_player, new_enemy, x, y
+                enemies.append(Enemy(x, y, 'wolf'))
+            elif level[y][x] == '^':
+                Tile('empty', x, y)
+                enemies.append(Enemy(x, y, 'eagle'))
+    return new_player, enemies, x, y
 
 
 # создаём окно с историей о гусе
@@ -1124,7 +1637,8 @@ def shop():
     your_money = font1.render(f"{coin}", True, (0, 0, 0))
     screen.blit(your_money, (width // 2 - your_money.get_width() // 2, 20))
     pic_coin = pygame.transform.scale(load_image('coin.png'), (30, 30))
-    screen.blit(pic_coin, ((width // 2 - your_money.get_width() // 2) + your_money.get_width(), 20))
+    screen.blit(pic_coin,
+                ((width // 2 - your_money.get_width() // 2) + your_money.get_width(), 20))
     text_coord = 50
     done = font1.render("  Твой", True, (0, 0, 0))
     now = font1.render("Выбран", True, (0, 0, 0))
